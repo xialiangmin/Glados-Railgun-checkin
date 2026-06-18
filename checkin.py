@@ -88,7 +88,6 @@ class Config:
     """应用配置"""
 
     ENV_COOKIES = "GLADOS_COOKIES"
-    ENV_EXCHANGE_PLAN = "GLADOS_EXCHANGE_PLAN"
     ENV_VERBOSE = "GLADOS_VERBOSE"
     
     # 新增 Telegram 环境变量
@@ -107,7 +106,6 @@ class Config:
         self.tg_bot_token: str = ""
         self.tg_chat_id: str = ""
         self.cookies_list: List[str] = []
-        self.exchange_plan: str = self.DEFAULT_EXCHANGE_PLAN
         self.verbose: bool = self.DEFAULT_VERBOSE
         self._load_config()
 
