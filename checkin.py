@@ -94,7 +94,6 @@ def log_method(func):
 class Config:
     """应用配置"""
 
-    ENV_PUSH_KEY = "PUSHDEER_SENDKEY"
     ENV_COOKIES = "GLADOS_COOKIES"
     ENV_EXCHANGE_PLAN = "GLADOS_EXCHANGE_PLAN"
     ENV_VERBOSE = "GLADOS_VERBOSE"
@@ -103,20 +102,14 @@ class Config:
     ENV_TG_BOT_TOKEN = "TG_BOT_TOKEN"
     ENV_TG_CHAT_ID = "TG_CHAT_ID"
 
-    """默认兑换计划"""
-    DEFAULT_EXCHANGE_PLAN = "plan500"
 
     """默认是否输出详细响应"""
     DEFAULT_VERBOSE = False
 
     """默认域名"""
-    DOMAINS = ["glados.cloud", "railgun.info"]
+    DOMAINS = ["glados.cloud"]
 
-    """兑换计划列表"""
-    EXCHANGE_PLANS = {
-        ExchangePlan.PLAN100.value: 100,
-        ExchangePlan.PLAN200.value: 200,
-        ExchangePlan.PLAN500.value: 500,
+
     }
 
     def __init__(self):
@@ -134,15 +127,7 @@ class Config:
         tg_bot_token_env: Optional[str] = os.environ.get(self.ENV_TG_BOT_TOKEN)
         tg_chat_id_env: Optional[str] = os.environ.get(self.ENV_TG_CHAT_ID)
         raw_cookies_env: Optional[str] = os.environ.get(self.ENV_COOKIES)
-        exchange_plan_env: Optional[str] = os.environ.get(self.ENV_EXCHANGE_PLAN)
         verbose_env: Optional[str] = os.environ.get(self.ENV_VERBOSE)
-
-        # 加载 PushDeer 配置
-        if not push_key_env:
-            logger.warning(f"{LogEmoji.WARNING} 环境变量 '{self.ENV_PUSH_KEY}' 未设置。")
-            self.push_key = ""
-        else:
-            self.push_key = push_key_env
 
         # 加载 Telegram 配置
         if not tg_bot_token_env or not tg_chat_id_env:
@@ -162,22 +147,6 @@ class Config:
             if not self.cookies_list:
                 raise ValueError(f"环境变量 '{self.ENV_COOKIES}' 已设置，但未包含任何有效的 Cookie。")
 
-        # 加载兑换计划
-        if not exchange_plan_env:
-            logger.warning(f"{LogEmoji.WARNING} 环境变量 '{self.ENV_EXCHANGE_PLAN}' 未设置，将使用默认兑换计划 {self.DEFAULT_EXCHANGE_PLAN}。")
-            self.exchange_plan = self.DEFAULT_EXCHANGE_PLAN
-        else:
-            if exchange_plan_env in self.EXCHANGE_PLANS:
-                self.exchange_plan = exchange_plan_env
-                logger.info(f"{LogEmoji.SUCCESS} 使用指定的兑换计划: {self.exchange_plan}")
-            else:
-                logger.warning(f"{LogEmoji.WARNING} 环境变量 '{self.ENV_EXCHANGE_PLAN}' 的值 '{exchange_plan_env}' 无效，将使用默认兑换计划 {self.DEFAULT_EXCHANGE_PLAN}。")
-                self.exchange_plan = self.DEFAULT_EXCHANGE_PLAN
-
-        logger.info(f"{LogEmoji.INFO} 共加载了 {len(self.cookies_list)} 个 Cookie 用于签到。")
-        logger.info(f"{LogEmoji.INFO} 当前 {self.ENV_PUSH_KEY} {'已设置' if push_key_env else '未设置'}。")
-        logger.info(f"{LogEmoji.INFO} 当前 TG_BOT_TOKEN/TG_CHAT_ID {'已设置' if tg_bot_token_env and tg_chat_id_env else '未设置'}。")
-        logger.info(f"{LogEmoji.INFO} 当前 {self.ENV_EXCHANGE_PLAN}: {self.exchange_plan}。")
 
         # 加载详细日志配置
         if verbose_env is not None:
@@ -372,26 +341,7 @@ class API:
             self._log("warning", LogEmoji.WARNING, "获取积分失败", force=True)
             return "None 积分", 0
 
-    @log_method
-    def exchange(self, cookies: str, plan: str, required_points: int) -> str:
-        """执行兑换"""
-        url = self._get_full_url(self.EXCHANGE_URL)
-        response = self._make_request(url, "POST", {"planType": plan}, cookies)
-
-        if response:
-            data = response.json()
-            code = data.get("code", -2)
-            message = data.get("message", "未知错误")
-
-            if code == 0:
-                self._log("info", LogEmoji.SUCCESS, f"{{ code : {code}, message : {message} }}")
-                return f"兑换成功: {plan}"
-            else:
-                self._log("info", LogEmoji.FAIL, f"{{ code : {code}, message : {message} }}", force=True)
-                return f"兑换失败: {message}"
-        else:
-            self._log("warning", LogEmoji.WARNING, "兑换失败", force=True)
-            return "兑换失败"
+   
 
 
 @dataclass()
@@ -422,18 +372,7 @@ class PushService:
         """发送推送 (兼容 PushDeer 与 Telegram)"""
         pushed = False
 
-        # --- 发送 PushDeer 推送 ---
-        if self.config.push_key:
-            try:
-                pushdeer = PushDeer(pushkey=self.config.push_key)
-                pushdeer.send_text(title, desp=content)
-                logger.info(f"{LogEmoji.SUCCESS} PushDeer 推送通知发送成功。")
-                pushed = True
-            except Exception as e:
-                logger.error(f"{LogEmoji.ERROR} 发送 PushDeer 推送通知失败: {e}")
-        else:
-            logger.info(f"{LogEmoji.WARNING} 未设置 PushDeer 密钥，跳过 PushDeer 推送。")
-
+       
         # --- 发送 Telegram 推送 ---
         if self.config.tg_bot_token and self.config.tg_chat_id:
             try:
@@ -519,15 +458,7 @@ class Checker:
             points_str, points_num = api.get_points(cookie)
             result.points_total = points_str
 
-            # 4. 执行兑换
-            required_points = self.config.EXCHANGE_PLANS.get(self.config.exchange_plan, 500)
-            self._log(
-                cookie_idx,
-                domain,
-                LogEmoji.EXCHANGE,
-                f"开始兑换 {self.config.exchange_plan} (需要 {required_points} 积分)",
-            )
-            result.exchange = api.exchange(cookie, self.config.exchange_plan, required_points)
+           
 
         return result
 
