@@ -17,13 +17,6 @@ class CheckinStatus(Enum):
     FAILURE = -2
 
 
-class ExchangePlan(Enum):
-    """兑换计划"""
-
-    PLAN100 = "plan100"
-    PLAN200 = "plan200"
-    PLAN500 = "plan500"
-
 
 class APIEndpoint(Enum):
     """API端点"""
