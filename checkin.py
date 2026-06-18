@@ -102,9 +102,6 @@ class Config:
     """默认域名"""
     DOMAINS = ["glados.cloud"]
 
-
-    }
-
     def __init__(self):
         self.push_key: str = ""
         self.tg_bot_token: str = ""
