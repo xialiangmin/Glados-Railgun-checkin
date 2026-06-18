@@ -102,7 +102,6 @@ class Config:
     DOMAINS = ["glados.cloud"]
 
     def __init__(self):
-        self.push_key: str = ""
         self.tg_bot_token: str = ""
         self.tg_chat_id: str = ""
         self.cookies_list: List[str] = []
@@ -111,7 +110,6 @@ class Config:
 
     def _load_config(self) -> None:
         """加载配置"""
-        push_key_env: Optional[str] = os.environ.get(self.ENV_PUSH_KEY)
         tg_bot_token_env: Optional[str] = os.environ.get(self.ENV_TG_BOT_TOKEN)
         tg_chat_id_env: Optional[str] = os.environ.get(self.ENV_TG_CHAT_ID)
         raw_cookies_env: Optional[str] = os.environ.get(self.ENV_COOKIES)
