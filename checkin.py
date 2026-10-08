@@ -166,7 +166,7 @@ class Config:
         logger.info(f"{LogEmoji.INFO} 当前 {self.ENV_EXCHANGE_PLAN}: {self.exchange_plan}。")
 
         # 加载详细日志配置
-         if verbose_env is not None:
+        if verbose_env is not None:
             verbose_env_lower = verbose_env.lower()
             if verbose_env_lower in ["true", "1", "yes", "y"]:
                 self.verbose = True
