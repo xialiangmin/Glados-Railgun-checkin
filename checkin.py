@@ -18,14 +18,6 @@ class CheckinStatus(Enum):
     REPEAT = 1
     FAILURE = -2
 
-
-class ExchangePlan(Enum):
-    """兑换计划"""
-
-    PLAN100 = "plan100"
-    PLAN200 = "plan200"
-    PLAN500 = "plan500"
-
 class APIEndpoint(Enum):
     """API端点"""
 
@@ -98,9 +90,6 @@ class Config:
     ENV_COOKIES = "GLADOS_COOKIES"
     ENV_VERBOSE = "GLADOS_VERBOSE"
     
-    """默认兑换计划（none 表示不自动兑换）"""
-    DEFAULT_EXCHANGE_PLAN = "none"
-
     # 新增 Telegram 环境变量
     ENV_TG_BOT_TOKEN = "TG_BOT_TOKEN"
     ENV_TG_CHAT_ID = "TG_CHAT_ID"
@@ -112,12 +101,6 @@ class Config:
     """默认域名"""
     DOMAINS = ["glados.cloud"]
     
-    """兑换计划列表"""
-    EXCHANGE_PLANS = {
-        ExchangePlan.PLAN100.value: 100,
-        ExchangePlan.PLAN200.value: 200,
-        ExchangePlan.PLAN500.value: 500,
-    }
     
     def __init__(self):
         self.tg_bot_token: str = ""
@@ -413,27 +396,6 @@ class API:
         else:
             self._log("warning", LogEmoji.WARNING, "获取积分失败", force=True)
             return "None 积分", 0
-            
-    @log_method
-    def exchange(self, cookies: str, plan: str, required_points: int) -> str:
-        """执行兑换"""
-        url = self._get_full_url(self.EXCHANGE_URL)
-        response = self._make_request(url, "POST", {"planType": plan}, cookies)
-
-        if response:
-            data = response.json()
-            code = data.get("code", -2)
-            message = data.get("message", "未知错误")
-
-            if code == 0:
-                self._log("info", LogEmoji.SUCCESS, f"{{ code : {code}, message : {message} }}")
-                return f"兑换成功: {plan}"
-            else:
-                self._log("info", LogEmoji.FAIL, f"{{ code : {code}, message : {message} }}", force=True)
-                return f"兑换失败: {message}"
-        else:
-            self._log("warning", LogEmoji.WARNING, "兑换失败", force=True)
-            return "兑换失败"
 
 @dataclass()
 class CheckinResult:
@@ -464,8 +426,8 @@ class PushService:
         pushed = False
 
        
-        # --- 发送 Telegram 推送 ---
-        if self.config.tg_bot_token and self.config.tg_chat_id:
+    # --- 发送 Telegram 推送 ---
+    if self.config.tg_bot_token and self.config.tg_chat_id:
             try:
                 url = f"https://api.telegram.org/bot{self.config.tg_bot_token}/sendMessage"
                 message = f"🤖 <b>{title}</b>\n\n{content}"
@@ -549,20 +511,6 @@ class Checker:
             points_str, points_num = api.get_points(cookie)
             result.points_total = points_str
             
-            # 4. 执行兑换（未配置有效兑换计划时跳过）
-            if self.config.exchange_plan in self.config.EXCHANGE_PLANS:
-                required_points = self.config.EXCHANGE_PLANS[self.config.exchange_plan]
-                self._log(
-                    cookie_idx,
-                    domain,
-                    LogEmoji.EXCHANGE,
-                    f"开始兑换 {self.config.exchange_plan} (需要 {required_points} 积分)",
-                )
-                result.exchange = api.exchange(cookie, self.config.exchange_plan, required_points)
-            else:
-                result.exchange = "未配置兑换计划，跳过自动兑换"
-                self._log(cookie_idx, domain, LogEmoji.INFO, "未配置兑换计划，跳过自动兑换", force=True)
-
         return result
 
     def get_results(self) -> List[Dict[str, str]]:
