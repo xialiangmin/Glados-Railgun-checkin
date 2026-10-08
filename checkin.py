@@ -445,7 +445,7 @@ class PushService:
     else:
             logger.info(f"{LogEmoji.WARNING} 未设置 TG_BOT_TOKEN 或 TG_CHAT_ID，跳过 Telegram 推送。")
             
-        return pushed
+    return pushed
 
 
 class Checker:
