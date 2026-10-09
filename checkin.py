@@ -486,6 +486,37 @@ class PushService:
                 logger.error(f"{LogEmoji.ERROR} 发送 PushDeer 推送通知失败: {e}")
         else:
             logger.info(f"{LogEmoji.WARNING} 未设置 PushDeer 密钥，跳过 PushDeer 推送。")
+        # --- 发送 PushDeer 推送 ---
+        if self.config.push_key:
+            try:
+                pushdeer = PushDeer(pushkey=self.config.push_key)
+                pushdeer.send_text(title, desp=content)
+                logger.info(f"{LogEmoji.SUCCESS} PushDeer 推送通知发送成功。")
+                pushed = True
+            except Exception as e:
+                logger.error(f"{LogEmoji.ERROR} 发送 PushDeer 推送通知失败: {e}")
+        else:
+            logger.info(f"{LogEmoji.WARNING} 未设置 PushDeer 密钥，跳过 PushDeer 推送。")
+
+        # --- 发送 Telegram 推送 ---
+        if self.config.tg_bot_token and self.config.tg_chat_id:
+            try:
+                url = f"https://api.telegram.org/bot{self.config.tg_bot_token}/sendMessage"
+                message = f"🤖 <b>{title}</b>\n\n{content}"
+                payload = {
+                    "chat_id": self.config.tg_chat_id,
+                    "text": message,
+                    "parse_mode": "HTML"
+                }
+                response = requests.post(url, json=payload, timeout=10)
+                response.raise_for_status()
+                logger.info(f"{LogEmoji.SUCCESS} Telegram 推送通知发送成功。")
+                pushed = True
+            except Exception as e:
+                logger.error(f"{LogEmoji.ERROR} 发送 Telegram 推送通知失败: {e}")
+        else:
+            logger.info(f"{LogEmoji.WARNING} 未设置 TG_BOT_TOKEN 或 TG_CHAT_ID，跳过 Telegram 推送。")
+
 
 
 
