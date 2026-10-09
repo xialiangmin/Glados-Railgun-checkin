@@ -107,8 +107,12 @@ class Config:
     """默认是否输出详细响应"""
     DEFAULT_VERBOSE = False
 
+    # 新增 Telegram 环境变量
+    ENV_TG_BOT_TOKEN = "TG_BOT_TOKEN"
+    ENV_TG_CHAT_ID = "TG_CHAT_ID"
+
     """默认域名"""
-    DOMAINS = ["glados.cloud", "railgun.info"]
+    DOMAINS = ["glados.cloud"]
 
     """兑换计划列表"""
     EXCHANGE_PLANS = {
