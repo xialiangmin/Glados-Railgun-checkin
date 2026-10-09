@@ -516,9 +516,10 @@ class PushService:
                 logger.error(f"{LogEmoji.ERROR} 发送 Telegram 推送通知失败: {e}")
         else:
             logger.info(f"{LogEmoji.WARNING} 未设置 TG_BOT_TOKEN 或 TG_CHAT_ID，跳过 Telegram 推送。")
-
-
-
+        if not pushed:
+            logger.info(f"{LogEmoji.WARNING} 没有任何推送服务被触发。")
+            
+        return pushed
 
 class Checker:
     """签到"""
