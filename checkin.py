@@ -143,6 +143,15 @@ class Config:
         else:
             self.push_key = push_key_env
 
+        # 加载 Telegram 配置
+        if not tg_bot_token_env or not tg_chat_id_env:
+            logger.warning(f"{LogEmoji.WARNING} 环境变量 '{self.ENV_TG_BOT_TOKEN}' 或 '{self.ENV_TG_CHAT_ID}' 未完全设置。")
+            self.tg_bot_token = ""
+            self.tg_chat_id = ""
+        else:
+            self.tg_bot_token = tg_bot_token_env
+            self.tg_chat_id = tg_chat_id_env
+
         if not raw_cookies_env:
             logger.warning(f"{LogEmoji.WARNING} 环境变量 '{self.ENV_COOKIES}' 未设置。")
             self.cookies_list = []
