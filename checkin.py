@@ -472,19 +472,21 @@ class PushService:
         self.config = config
 
     def send(self, title: str, content: str) -> bool:
-        """发送推送"""
-        if not self.config.push_key:
-            logger.info(f"{LogEmoji.WARNING} 未设置推送密钥，跳过推送通知。")
-            return False
+        """发送推送 (兼容 PushDeer 与 Telegram)"""
+        pushed = False
 
-        try:
-            pushdeer = PushDeer(pushkey=self.config.push_key)
-            pushdeer.send_text(title, desp=content)
-            logger.info(f"{LogEmoji.SUCCESS} 推送通知发送成功。")
-            return True
-        except Exception as e:
-            logger.error(f"{LogEmoji.ERROR} 发送推送通知失败: {e}")
-            return False
+        # --- 发送 PushDeer 推送 ---
+        if self.config.push_key:
+            try:
+                pushdeer = PushDeer(pushkey=self.config.push_key)
+                pushdeer.send_text(title, desp=content)
+                logger.info(f"{LogEmoji.SUCCESS} PushDeer 推送通知发送成功。")
+                pushed = True
+            except Exception as e:
+                logger.error(f"{LogEmoji.ERROR} 发送 PushDeer 推送通知失败: {e}")
+        else:
+            logger.info(f"{LogEmoji.WARNING} 未设置 PushDeer 密钥，跳过 PushDeer 推送。")
+
 
 
 class Checker:
