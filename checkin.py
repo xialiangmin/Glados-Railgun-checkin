@@ -131,6 +131,8 @@ class Config:
     def _load_config(self) -> None:
         """加载配置"""
         push_key_env: Optional[str] = os.environ.get(self.ENV_PUSH_KEY)
+        tg_bot_token_env: Optional[str] = os.environ.get(self.ENV_TG_BOT_TOKEN)
+        tg_chat_id_env: Optional[str] = os.environ.get(self.ENV_TG_CHAT_ID)
         raw_cookies_env: Optional[str] = os.environ.get(self.ENV_COOKIES)
         exchange_plan_env: Optional[str] = os.environ.get(self.ENV_EXCHANGE_PLAN)
         verbose_env: Optional[str] = os.environ.get(self.ENV_VERBOSE)
