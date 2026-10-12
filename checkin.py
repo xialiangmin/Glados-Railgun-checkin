@@ -112,7 +112,7 @@ class Config:
     ENV_TG_CHAT_ID = "TG_CHAT_ID"
 
     """默认域名"""
-    DOMAINS = ["glados.cloud"]
+    DOMAINS = ["glados.cloud", "railgun.info"]
 
     """兑换计划列表"""
     EXCHANGE_PLANS = {
